@@ -238,9 +238,16 @@ hex: $(HEXTRG)
 #	 -p $(PROGRAMMER_MCU) -P $(AVRDUDE_PORT) -e        \
 #	 -U flash:w:$(HEXROMTRG) $(AVRDUDE_FUSES)
 
+write: writeflash writeeeprom
+
 writeflash: hex
 	$(AVRDUDE_PROGRAMMERID) -c usbtiny -C $(AVRDUDECONF) \
 	-p $(PROGRAMMER_MCU) -U flash:w:$(HEXROMTRG)  $(AVRDUDE_FUSES)
+
+writeeeprom:
+	$(AVRDUDE_PROGRAMMERID) -c usbtiny -C $(AVRDUDECONF) \
+	-p $(PROGRAMMER_MCU) -U eeprom:w:main.ee.hex
+
 
 install: writeflash
 

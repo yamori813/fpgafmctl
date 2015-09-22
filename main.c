@@ -10,6 +10,7 @@
 #include <util/delay.h>
 #include <stdlib.h>
 #include <avr/sleep.h>
+#include <avr/eeprom.h>
 
 #define BIT_LED 1
 #define IR_REC 2
@@ -23,6 +24,8 @@ volatile int hicount;
 volatile int bitcount;
 volatile long lastvalue;
 volatile long irvalue;
+
+uint16_t freq[] EEMEM = {768,774,783,789,803,809,816,822,828};
 
 ISR(INT0_vect)
 {
@@ -146,43 +149,44 @@ int main ( void )
 			if(lastvalue == irvalue && lastsend != irvalue) {
 				lastsend = irvalue;
 				GIMSK &= ~(1<<INT0);
-				long fqint;
+				int button = 0;
 				switch (irvalue) {
 					case 0x010:   // 1
-						fqint = 768;
+						button = 1;
 						break;
 					case 0x810:   // 2
-						fqint = 774;
+						button = 2;
 						break;
 					case 0x410:   // 3
-						fqint = 783;
+						button = 3;
 						break;
 					case 0xc10:   // 4
-						fqint = 789;
+						button = 4;
 						break;
 					case 0x210:   // 5
-						fqint = 803;
+						button = 5;
 						break;
 					case 0xa10:   // 6
-						fqint = 809;
+						button = 6;
 						break;
 					case 0x610:   // 7
-						fqint = 816;
+						button = 7;
 						break;
 					case 0xe10:   // 8
-						fqint = 822;
+						button = 8;
 						break;
 					case 0x110:   // 9
-						fqint = 828;
+						button = 9;
 						break;
 					case 0x910:   // 10
 					case 0x510:   // 11
 					case 0xd10:   // 12
 					default:
-						fqint = 0;
+						button = 0;
 						break;
 				}
-				if(fqint != 0) {
+				if(button != 0) {
+					int fqint = eeprom_read_word(&freq[button-1]);
 					j = 0;
 					messageBuf[j] = (fqint / 100) + '0';
 					++j;
