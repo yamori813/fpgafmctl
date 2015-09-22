@@ -104,8 +104,6 @@ int main ( void )
 	int j;
 	int idlecount;
 
-	// INTピンの論理変化で割り込み
-	//	MCUCR |= (1<<ISC00);
 	// 外部割り込みマスクレジスタ
 	GIMSK |= (1<<INT0);
 
