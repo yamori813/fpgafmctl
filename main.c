@@ -25,7 +25,7 @@ volatile int bitcount;
 volatile long lastvalue;
 volatile long irvalue;
 
-uint16_t freq[] EEMEM = {768,774,783,789,803,809,816,822,828};
+uint16_t jcom_tokyo_freq[] EEMEM = {768,774,783,789,803,809,816,822,828};
 
 ISR(INT0_vect)
 {
@@ -186,7 +186,7 @@ int main ( void )
 						break;
 				}
 				if(button != 0) {
-					int fqint = eeprom_read_word(&freq[button-1]);
+					int fqint = eeprom_read_word(&jcom_tokyo_freq[button-1]);
 					j = 0;
 					messageBuf[j] = (fqint / 100) + '0';
 					++j;
