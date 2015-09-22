@@ -121,7 +121,7 @@ int main ( void )
 	insleep = 0;
 	for (;;) {
 		if(irstat == 0) {
-			if(idlecount > 10) { // 200ms * 10 = 1 sec
+			if(idlecount > 10) { // 200ms * 10 = 2 sec
 				PORTB &= ~(1 << BIT_LED); // LED on
 				// INTピンのLレベルで割り込みに変更
 				MCUCR &= ~(1<<ISC00);

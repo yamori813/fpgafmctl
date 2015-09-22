@@ -132,7 +132,7 @@ static inline void uartStop(void)
 {
 	TIMSK &= ~(1<<OCIE1A);    // Disable Interupt on Compare
 	TXREG &= ~(1 << TXPIN);   // Reset TXPIN/PORT  from output. 
-	TXPORT &= ~(1 << TXPIN);  // Reset TXPIN
+	TXPORT &= ~(1 << TXPIN);  // Reset TXPIN. This is use power in sleep.
 	TCCR1 = 0;
 }
 #endif
