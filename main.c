@@ -38,7 +38,7 @@ ISR(INT0_vect)
 		if(irstat == 0 && ((PINB >> IR_REC) & 0x01) && locount > STARTLOWLEN) {
 			irstat = 1;
 			bitcount = 0;
-			//		PORTB &= ~(1 << BIT_LED); // LED on
+			PORTB &= ~(1 << BIT_LED); // LED on
 			irvalue = 0;
 			//		TCCR0A = 0b00000010;
 			//		OCR0A = 50;
@@ -51,7 +51,7 @@ ISR(INT0_vect)
 				}
 				++bitcount;
 				if(bitcount == 12) {
-					//				PORTB |= 1 << BIT_LED; // LED off
+					PORTB |= 1 << BIT_LED; // LED off
 //					TIMSK &= ~(1<<TOIE0);
 					irstat = 2;
 				}
@@ -125,7 +125,7 @@ int main ( void )
 	for (;;) {
 		if(irstat == 0) {
 			if(idlecount > 10) { // 200ms * 10 = 2 sec
-				PORTB &= ~(1 << BIT_LED); // LED on
+//				PORTB &= ~(1 << BIT_LED); // LED on
 				// INTピンのLレベルで割り込みに変更
 				MCUCR &= ~(1<<ISC00);
 				MCUCR &= ~(1<<ISC01);
@@ -137,7 +137,7 @@ int main ( void )
 
 				insleep = 0;
 				idlecount = 0;
-				PORTB |= 1 << BIT_LED; // LED off
+//				PORTB |= 1 << BIT_LED; // LED off
 				// INTピンの論理変化で割り込みに戻す
 				MCUCR |= (1<<ISC00);
 //				TCCR0B |= (1<<CS02);
