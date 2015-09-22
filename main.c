@@ -86,6 +86,8 @@ char hexchar(int val)
 
 int main ( void )
 {
+	// http://nice.kaze.com/fpga-tuner_fc.html
+
 	// 0		1		2		3
 	// 192.0	170.7		153.6		139.6
 	// 4		5		6		7
@@ -96,11 +98,18 @@ int main ( void )
 	// 76.8		73.1		69.8		66.8
 	// default 3
 	int level = 3;
+
 	// 0      1      2      3
 	// 236kHz 198kHz 162kHz 126kHz
 	// default 1
 	int band = 1;
-	int mono = 0; // 0,1
+	int stattx = 0; // 0 = off, 1 = on
+	int muti = 0; // Multi path off = 0, on = 1
+
+	int sample = 0; // 0 = 48k, 1 = 96K, 2 = 192K, 3 = 192K 
+	int mute = 0; // Muting 0 = Off, 1 = on
+	int mono = 0; // 0 = mono, 1 = Stereo Auto
+
 	int j;
 	int idlecount;
 
@@ -194,9 +203,9 @@ int main ( void )
 					++j;
 					messageBuf[j] = hexchar(level);
 					++j;
-					messageBuf[j] = hexchar(band << 2);
+					messageBuf[j] = hexchar(muti << 3 | stattx << 2 | band);
 					++j;
-					messageBuf[j] = hexchar(mono);
+					messageBuf[j] = hexchar(mono << 3 | mute << 2 | sample);
 					++j;
 					messageBuf[j] = '\n';
 					++j;
