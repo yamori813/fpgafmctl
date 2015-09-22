@@ -33,9 +33,9 @@
 ##### make disasm 
 ##### make stats 
 ##### make hex
-##### make write
 ##### make writeflash
 ##### make writeeeprom
+##### make install
 ##### make gdbinit
 ##### or make clean
 #####
@@ -240,18 +240,16 @@ hex: $(HEXTRG)
 #	 -p $(PROGRAMMER_MCU) -P $(AVRDUDE_PORT) -e        \
 #	 -U flash:w:$(HEXROMTRG) $(AVRDUDE_FUSES)
 
-write: writeflash writeeeprom
-
 writeflash: hex
 	$(AVRDUDE_PROGRAMMERID) -c usbtiny -C $(AVRDUDECONF) \
 	-p $(PROGRAMMER_MCU) -U flash:w:$(HEXROMTRG)  $(AVRDUDE_FUSES)
 
-writeeeprom:
+writeeeprom: hex
 	$(AVRDUDE_PROGRAMMERID) -c usbtiny -C $(AVRDUDECONF) \
 	-p $(PROGRAMMER_MCU) -U eeprom:w:main.ee.hex
 
 
-install: writeflash
+install: writeflash writeeeprom
 
 $(DUMPTRG): $(TRG) 
 	$(OBJDUMP) -S  $< > $@
