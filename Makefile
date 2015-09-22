@@ -33,7 +33,9 @@
 ##### make disasm 
 ##### make stats 
 ##### make hex
+##### make write
 ##### make writeflash
+##### make writeeeprom
 ##### make gdbinit
 ##### or make clean
 #####
