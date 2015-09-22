@@ -16,6 +16,7 @@
 
 #define STARTLOWLEN 72
 
+volatile int insleep;
 volatile int irstat;
 volatile int locount;
 volatile int hicount;
@@ -25,6 +26,7 @@ volatile long irvalue;
 
 ISR(INT0_vect)
 {
+	if(insleep == 0) {
 	if((PINB >> IR_REC) & 0x01) {
 		locount = TCNT0;
 	} else {
@@ -33,7 +35,7 @@ ISR(INT0_vect)
 	if(irstat == 0 && ((PINB >> IR_REC) & 0x01) && locount > STARTLOWLEN) {
 		irstat = 1;
 		bitcount = 0;
-		PORTB &= ~(1 << BIT_LED); // LED on
+//		PORTB &= ~(1 << BIT_LED); // LED on
 		irvalue = 0;
 //		TCCR0A = 0b00000010;
 //		OCR0A = 50;
@@ -46,12 +48,13 @@ ISR(INT0_vect)
 			}
 			++bitcount;
 			if(bitcount == 12) {
-				PORTB |= 1 << BIT_LED; // LED off
+//				PORTB |= 1 << BIT_LED; // LED off
 				TIMSK &= ~(1<<TOIE0);
 				irstat = 2;
 			}
 		}
 	} else if(irstat == 2) {
+	}
 	}
 	TCNT0 = 0x00;
 }
@@ -93,24 +96,49 @@ int main ( void )
 	// default 1
 	int band = 1;
 	int mono = 0; // 0,1
-	int i;
 	int j;
+	int idlecount;
 
-	MCUCR |= (1<<ISC00);
+	// INTピンの論理変化で割り込み
+	//	MCUCR |= (1<<ISC00);
+	// 外部割り込みマスクレジスタ
 	GIMSK |= (1<<INT0);
 
 	DDRB |= 1 << BIT_LED;   /* output for LED */
 	PORTB |= 1 << BIT_LED; // LED off
 
 	TCCR0B |= (1<<CS02);
-	TIMSK |= 1<<TOIE0;
-	uartInit();
-	sei();
 	irstat = 0;
 	long lastsend = 0;
-//	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-//	sleep_mode(); 
+	set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+	sei();
+//	TIMSK |= 1<<TOIE0;
+	// INTピンの論理変化で割り込み
+	MCUCR |= (1<<ISC00);
+	idlecount = 0;
 	for (;;) {
+		if(irstat == 0) {
+			if(idlecount > 20) {
+				PORTB &= ~(1 << BIT_LED); // LED on
+				// INTピンのLレベルで割り込みに変更
+				MCUCR &= ~(1<<ISC00);
+				MCUCR &= ~(1<<ISC01);
+				// Timer0停止
+//				TCCR0B = 0;
+				insleep = 1;
+
+				sleep_mode();
+
+				insleep = 0;
+				idlecount = 0;
+				PORTB |= 1 << BIT_LED; // LED off
+				// INTピンの論理変化で割り込みに戻す
+				MCUCR |= (1<<ISC00);
+//				TCCR0B |= (1<<CS02);
+			} else {
+				++idlecount;
+			}
+		}
 		if(irstat == 2) {
 			if(lastvalue == irvalue && lastsend != irvalue) {
 				lastsend = irvalue;
@@ -165,9 +193,15 @@ int main ( void )
 					messageBuf[j] = '\n';
 					++j;
 					//iterate through the first ten items of messageBuf, sending values over the software UART
+
+//					PORTB &= ~(1 << BIT_LED); // LED on
+					uartInit();
 					for (temp = 0; temp < j; temp++) {
 						sendByte(messageBuf[temp]);
 					}
+					uartStop();
+//					PORTB |= 1 << BIT_LED; // LED off
+
 				}
 				GIMSK |= (1<<INT0);
 			}

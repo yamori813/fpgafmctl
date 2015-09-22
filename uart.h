@@ -127,5 +127,13 @@ static inline void uartInit(void)
    sei();			        // enable interrupts 
 }
 
+
+static inline void uartStop(void)
+{
+	TIMSK &= ~(1<<OCIE1A);    // Disable Interupt on Compare
+	TXREG &= ~(1 << TXPIN);   // Reset TXPIN/PORT  from output. 
+	TXPORT &= ~(1 << TXPIN);  // Reset TXPIN
+	TCCR1 = 0;
+}
 #endif
 
