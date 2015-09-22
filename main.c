@@ -27,38 +27,39 @@ volatile long irvalue;
 ISR(INT0_vect)
 {
 	if(insleep == 0) {
-	if((PINB >> IR_REC) & 0x01) {
-		locount = TCNT0;
-	} else {
-		hicount = TCNT0;
-	}
-	if(irstat == 0 && ((PINB >> IR_REC) & 0x01) && locount > STARTLOWLEN) {
-		irstat = 1;
-		bitcount = 0;
-//		PORTB &= ~(1 << BIT_LED); // LED on
-		irvalue = 0;
-//		TCCR0A = 0b00000010;
-//		OCR0A = 50;
-	} else if(irstat == 1) {
 		if((PINB >> IR_REC) & 0x01) {
-			if(locount > hicount * 2) {
-				irvalue = (irvalue << 1) | 1;
-			} else {
-				irvalue = (irvalue << 1);
-			}
-			++bitcount;
-			if(bitcount == 12) {
-//				PORTB |= 1 << BIT_LED; // LED off
-				TIMSK &= ~(1<<TOIE0);
-				irstat = 2;
-			}
+			locount = TCNT0;
+		} else {
+			hicount = TCNT0;
 		}
-	} else if(irstat == 2) {
-	}
+		if(irstat == 0 && ((PINB >> IR_REC) & 0x01) && locount > STARTLOWLEN) {
+			irstat = 1;
+			bitcount = 0;
+			//		PORTB &= ~(1 << BIT_LED); // LED on
+			irvalue = 0;
+			//		TCCR0A = 0b00000010;
+			//		OCR0A = 50;
+		} else if(irstat == 1) {
+			if((PINB >> IR_REC) & 0x01) {
+				if(locount > hicount * 2) {
+					irvalue = (irvalue << 1) | 1;
+				} else {
+					irvalue = (irvalue << 1);
+				}
+				++bitcount;
+				if(bitcount == 12) {
+					//				PORTB |= 1 << BIT_LED; // LED off
+//					TIMSK &= ~(1<<TOIE0);
+					irstat = 2;
+				}
+			}
+		} else if(irstat == 2) {
+		}
 	}
 	TCNT0 = 0x00;
 }
 
+#if 0
 ISR(TIM0_OVF_vect){
 	/*
 	if(irstat == 1) {
@@ -69,6 +70,7 @@ ISR(TIM0_OVF_vect){
 	}
 	 */
 }
+#endif
 
 char hexchar(int val)
 {
@@ -116,9 +118,10 @@ int main ( void )
 	// INTピンの論理変化で割り込み
 	MCUCR |= (1<<ISC00);
 	idlecount = 0;
+	insleep = 0;
 	for (;;) {
 		if(irstat == 0) {
-			if(idlecount > 20) {
+			if(idlecount > 10) { // 200ms * 10 = 1 sec
 				PORTB &= ~(1 << BIT_LED); // LED on
 				// INTピンのLレベルで割り込みに変更
 				MCUCR &= ~(1<<ISC00);
@@ -172,6 +175,9 @@ int main ( void )
 					case 0x110:   // 9
 						fqint = 828;
 						break;
+					case 0x910:   // 10
+					case 0x510:   // 11
+					case 0xd10:   // 12
 					default:
 						fqint = 0;
 						break;
