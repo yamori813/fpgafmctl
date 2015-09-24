@@ -108,7 +108,7 @@ int main ( void )
 
 	int sample = 0; // 0 = 48k, 1 = 96K, 2 = 192K, 3 = 192K 
 	int mute = 0; // Muting 0 = Off, 1 = on
-	int mono = 0; // 0 = mono, 1 = Stereo Auto
+	int mono = 0; // 1 = mono, 0 = Stereo Auto
 
 	int j;
 	int idlecount;
