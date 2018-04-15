@@ -88,7 +88,7 @@ char hexchar(int val)
 
 int main ( void )
 {
-	// http://nice.kaze.com/fpga-tuner_fc.html
+	// http://nice.kaze.com/av/fpga-tuner_fc.html
 
 	// 0		1		2		3
 	// 192.0	170.7		153.6		139.6
