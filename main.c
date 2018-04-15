@@ -1,3 +1,5 @@
+// This code is fpga fm tuner control by ir remote controller
+// signal is sony TV and CD remote controller
 // This code based on as follow code. But also copy from other location
 // https://github.com/itdaniher/Thermocouple-Interfaces
 //
@@ -159,30 +161,39 @@ int main ( void )
 				int button = 0;
 				switch (irvalue) {
 					case 0x010:   // 1
+					case 0x011:   // 1
 						button = 1;
 						break;
 					case 0x810:   // 2
+					case 0x811:   // 2
 						button = 2;
 						break;
 					case 0x410:   // 3
+					case 0x411:   // 3
 						button = 3;
 						break;
 					case 0xc10:   // 4
+					case 0xc11:   // 4
 						button = 4;
 						break;
 					case 0x210:   // 5
+					case 0x211:   // 5
 						button = 5;
 						break;
 					case 0xa10:   // 6
+					case 0xa11:   // 6
 						button = 6;
 						break;
 					case 0x610:   // 7
+					case 0x611:   // 7
 						button = 7;
 						break;
 					case 0xe10:   // 8
+					case 0xe11:   // 8
 						button = 8;
 						break;
 					case 0x110:   // 9
+					case 0x111:   // 9
 						button = 9;
 						break;
 					case 0x910:   // 10
