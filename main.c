@@ -19,6 +19,7 @@
 
 #define STARTLOWLEN 72
 
+volatile int ispc;
 volatile int insleep;
 volatile int irstat;
 volatile int locount;
@@ -27,7 +28,14 @@ volatile int bitcount;
 volatile long lastvalue;
 volatile long irvalue;
 
+void selectst(int st, int level, int muti, int stattx, int band, int mono, int mute, int sample);
+
 uint16_t jcom_tokyo_freq[] EEMEM = {768,774,783,789,803,809,816,822,828};
+
+ISR(PCINT0_vect)
+{
+	irstat = 3;
+}
 
 ISR(INT0_vect)
 {
@@ -112,14 +120,18 @@ int main ( void )
 	int mute = 0; // Muting 0 = Off, 1 = on
 	int mono = 0; // 1 = mono, 0 = Stereo Auto
 
-	int j;
 	int idlecount;
 
+	int tune = 0;
+
 	// 外部割り込みマスクレジスタ
-	GIMSK |= (1<<INT0);
+	GIMSK |= (1<<INT0) | (1 << PCIE);
+	PCMSK = 0x08;   // PB3
 
 	DDRB |= 1 << BIT_LED;   /* output for LED */
-	PORTB |= 1 << BIT_LED; // LED off
+	PORTB |= (1 << BIT_LED) | (1 << PB3); // LED off and PB3 pull up
+
+	ADCSRA &= ~(1 << ADEN);
 
 	TCCR0B |= (1<<CS02);
 	irstat = 0;
@@ -138,6 +150,8 @@ int main ( void )
 				// INTピンのLレベルで割り込みに変更
 				MCUCR &= ~(1<<ISC00);
 				MCUCR &= ~(1<<ISC01);
+				// PINチェンジ割り込み設定
+				GIMSK |= (1 << PCIE);
 				// Timer0停止
 //				TCCR0B = 0;
 				insleep = 1;
@@ -150,9 +164,20 @@ int main ( void )
 				// INTピンの論理変化で割り込みに戻す
 				MCUCR |= (1<<ISC00);
 //				TCCR0B |= (1<<CS02);
+				// PINチェンジ割り込み禁止
+				GIMSK &= ~(1 << PCIE);
 			} else {
 				++idlecount;
 			}
+		}
+		if (irstat == 3) {
+			GIMSK &= ~(1<<INT0);
+			++tune;
+			if (tune == 9)
+				tune = 0;
+			selectst(tune, level, muti, stattx, band, mono, mute, sample);
+			irstat = 0;
+			GIMSK |= (1<<INT0);
 		}
 		if(irstat == 2) {
 			if(lastvalue == irvalue && lastsend != irvalue) {
@@ -204,32 +229,7 @@ int main ( void )
 						break;
 				}
 				if(button != 0) {
-					int fqint = eeprom_read_word(&jcom_tokyo_freq[button-1]);
-					j = 0;
-					messageBuf[j] = (fqint / 100) + '0';
-					++j;
-					messageBuf[j] = (fqint / 10) % 10 + '0';
-					++j;
-					messageBuf[j] = fqint % 10 + '0';
-					++j;
-					messageBuf[j] = hexchar(level);
-					++j;
-					messageBuf[j] = hexchar(muti << 3 | stattx << 2 | band);
-					++j;
-					messageBuf[j] = hexchar(mono << 3 | mute << 2 | sample);
-					++j;
-					messageBuf[j] = '\n';
-					++j;
-					//iterate through the first ten items of messageBuf, sending values over the software UART
-
-//					PORTB &= ~(1 << BIT_LED); // LED on
-					uartInit();
-					for (temp = 0; temp < j; temp++) {
-						sendByte(messageBuf[temp]);
-					}
-					uartStop();
-//					PORTB |= 1 << BIT_LED; // LED off
-
+					selectst(button -1, level, muti, stattx, band, mono, mute, sample);
 				}
 				GIMSK |= (1<<INT0);
 			}
@@ -239,4 +239,35 @@ int main ( void )
 	_delay_ms(200);
 	}
 	return 0;
+}
+
+void selectst(int st, int level, int muti, int stattx, int band, int mono, int mute, int sample)
+{
+	int j;
+
+	int fqint = eeprom_read_word(&jcom_tokyo_freq[st]);
+	j = 0;
+	messageBuf[j] = (fqint / 100) + '0';
+	++j;
+	messageBuf[j] = (fqint / 10) % 10 + '0';
+	++j;
+	messageBuf[j] = fqint % 10 + '0';
+	++j;
+	messageBuf[j] = hexchar(level);
+	++j;
+	messageBuf[j] = hexchar(muti << 3 | stattx << 2 | band);
+	++j;
+	messageBuf[j] = hexchar(mono << 3 | mute << 2 | sample);
+	++j;
+	messageBuf[j] = '\n';
+	++j;
+	//iterate through the first ten items of messageBuf, sending values over the software UART
+
+	//					PORTB &= ~(1 << BIT_LED); // LED on
+	uartInit();
+	for (temp = 0; temp < j; temp++) {
+		sendByte(messageBuf[temp]);
+	}
+	uartStop();
+	//					PORTB |= 1 << BIT_LED; // LED off
 }
