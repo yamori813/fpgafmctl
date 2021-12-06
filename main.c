@@ -171,13 +171,16 @@ int main ( void )
 			}
 		}
 		if (irstat == 3) {
-			GIMSK &= ~(1<<INT0);
-			++tune;
-			if (tune == 9)
-				tune = 0;
-			selectst(tune, level, muti, stattx, band, mono, mute, sample);
+			if((PINB & 0x08) == 0) {
+				GIMSK &= ~(1<<INT0);
+				++tune;
+				if (tune == 8)
+					tune = 0;
+				selectst(tune, level, muti, stattx, band, mono, mute, sample);
+				GIMSK |= (1<<INT0);
+			}
+			idlecount = 11;
 			irstat = 0;
-			GIMSK |= (1<<INT0);
 		}
 		if(irstat == 2) {
 			if(lastvalue == irvalue && lastsend != irvalue) {
