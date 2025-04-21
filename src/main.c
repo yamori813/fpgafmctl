@@ -30,7 +30,8 @@ volatile long irvalue;
 
 void selectst(int st, int level, int muti, int stattx, int band, int mono, int mute, int sample);
 
-uint16_t jcom_tokyo_freq[] EEMEM = {768,774,783,789,803,809,816,822,828};
+//uint16_t jcom_tokyo_freq[] EEMEM = {768,774,783,789,803,809,816,822,828};
+uint16_t jcom_tokyo_freq[]  = {768,774,783,789,803,809,816,822,828};
 
 ISR(PCINT0_vect)
 {
@@ -248,7 +249,8 @@ void selectst(int st, int level, int muti, int stattx, int band, int mono, int m
 {
 	int j;
 
-	int fqint = eeprom_read_word(&jcom_tokyo_freq[st]);
+//	int fqint = eeprom_read_word(&jcom_tokyo_freq[st]);
+	int fqint = jcom_tokyo_freq[st];
 	j = 0;
 	messageBuf[j] = (fqint / 100) + '0';
 	++j;
